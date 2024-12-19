@@ -4,10 +4,11 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 
 public class Board {
-    private static final Color LIGHT_COLOR = Color.WHITE;
-    private static final Color DARK_COLOR = Color.BLUE;
+    private static final Color LIGHT_COLOR = Color.decode("#FBEAEB");
+    private static final Color DARK_COLOR = Color.decode("#2F3C7E");
     private static final int MAX_ROW_COL = 8;
-    private static final int BLOCK_SIZE = 100;
+    public static final int BLOCK_SIZE = 100;
+    public static final int BOARD_PADDING = 300;
 
     private static final int[] r1 = {0, 1, 0, 1, 0, 1, 0, 1};
     private static final int[] r2 = {1, 0, 1, 0, 1, 0, 1, 0}; 
@@ -23,7 +24,7 @@ public class Board {
                     g.setColor(DARK_COLOR);
                 }
 
-                g.fillRect(col * BLOCK_SIZE, row * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                g.fillRect(col * BLOCK_SIZE + BOARD_PADDING, row * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
             }
         }
     }
