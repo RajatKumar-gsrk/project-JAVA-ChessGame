@@ -8,7 +8,7 @@ public class Board {
     private static final Color DARK_COLOR = Color.decode("#2F3C7E");
     private static final int MAX_ROW_COL = 8;
     public static final int BLOCK_SIZE = 100;
-    public static final int BOARD_PADDING = 300;
+    public static final int BOARD_PADDING = 260;
 
     private static final int[] r1 = {0, 1, 0, 1, 0, 1, 0, 1};
     private static final int[] r2 = {1, 0, 1, 0, 1, 0, 1, 0}; 

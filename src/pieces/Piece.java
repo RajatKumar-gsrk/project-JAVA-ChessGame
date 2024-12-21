@@ -12,17 +12,25 @@ import javax.imageio.ImageIO;
 public class Piece {
     public BufferedImage pieceImage;
     public int x, y;//cordinates of piece
-    public int col, row, prevCol, prevRow;
+    public int col, row, prevCol, prevRow, startCol, startRow;
     public int color;
+    public boolean isAlive = true;
+    public boolean hasMoved = false;
+    private static final int PIECE_PADDING = 15;
+    private static final int DEAD_PIECE_SIZE = 30;
+    private static final int DEAD_PIECE_PADDING = 10;
+    private static final int V_PAD = 270;
 
     public Piece(int color, int col, int row){
         this.color = color;
-        this.col = col;
-        this.row = row;
+        setCol(col);
+        setRow(row);
         setX(this.col);
         setY(this.row);
-        prevCol = col;
-        prevRow = row;
+        setPrevCol(col);
+        setPrevRow(row);
+        startCol = col;
+        startRow = row;
     }
 
     protected void setPieceImage(String imagePath){
@@ -42,6 +50,22 @@ public class Piece {
         y = row * Board.BLOCK_SIZE;
     }
 
+    public void setCol(int col){
+        this.col = col;
+    }
+
+    public void setRow(int row){
+        this.row = row;
+    }
+
+    public void setPrevCol(int prevCol){
+        this.prevCol = prevCol;
+    }
+
+    public void setPrevRow(int prevRow){
+        this.prevRow = prevRow;
+    }
+
     public int getX(){
         return x;
     }
@@ -50,11 +74,23 @@ public class Piece {
         return y;
     }
 
+    public int getCol(){
+        return col;
+    }
+
+    public int getRow(){
+        return row;
+    }
+
     public BufferedImage getPieceImage(){
         return pieceImage;
     }
 
     public void draw_piece(Graphics2D g){
-        g.drawImage(pieceImage, getX() + Board.BOARD_PADDING, getY(), Board.BLOCK_SIZE, Board.BLOCK_SIZE, null);
+        if(isAlive){
+            g.drawImage(pieceImage, getX() + Board.BOARD_PADDING + PIECE_PADDING, getY() + PIECE_PADDING, Board.BLOCK_SIZE * 7 / 10, Board.BLOCK_SIZE * 7 / 10, null);
+        }else{
+            g.drawImage(pieceImage, startCol * DEAD_PIECE_SIZE + DEAD_PIECE_PADDING, startRow * DEAD_PIECE_SIZE + DEAD_PIECE_PADDING + V_PAD, DEAD_PIECE_SIZE, DEAD_PIECE_SIZE, null);
+        }
     }
 }
