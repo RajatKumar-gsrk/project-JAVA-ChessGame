@@ -8,34 +8,23 @@ public class MouseHandler implements MouseInputListener { //use MouseInputAdapte
 
     public int x, y;
     public int col, row;
-    public boolean pressed;
     public boolean clicked = false;
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        clicked = true;
         x = e.getX();
         y = e.getY();
-        setMouseCol();
-        setMouseRow();
-        clicked = !clicked;
+        setCol(x);
+        setRow(y);
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-        pressed = true;
-        x = e.getX();
-        y = e.getY();
-        setMouseCol();
-        setMouseRow();
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        pressed = false;
-        x = e.getX();
-        y = e.getY();
-        setMouseCol();
-        setMouseRow();
     }
 
     @Override
@@ -58,27 +47,27 @@ public class MouseHandler implements MouseInputListener { //use MouseInputAdapte
         // TODO Auto-generated method stub
     }
 
-    public void setMouseCol(){
-        this.col = (getMouseX() - Board.BOARD_PADDING) / Board.BLOCK_SIZE;
+    public void setCol(int x){
+        this.col = (x - Board.BOARD_PADDING) / Board.BLOCK_SIZE;
     }
 
-    public void setMouseRow(){
-        this.row = getMouseY() / Board.BLOCK_SIZE;
+    public void setRow(int y){
+        this.row = y / Board.BLOCK_SIZE;
     }
 
-    public int getMouseX(){
+    public int getX(){
         return x;
     }
 
-    public int getMouseY(){
+    public int getY(){
         return y;
     }
 
-    public int getMouseCol(){
+    public int getCol(){
         return col;
     }
 
-    public int getmouseRow(){
+    public int getRow(){
         return row;
     }
 

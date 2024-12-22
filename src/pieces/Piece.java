@@ -6,16 +6,19 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 
 public class Piece {
     public BufferedImage pieceImage;
-    public int x, y;//cordinates of piece
+    public int x, y;//cordinates of piece to draw
     public int col, row, prevCol, prevRow, startCol, startRow;
     public int color;
     public boolean isAlive = true;
     public boolean hasMoved = false;
+    public int piece_type;
+    public ArrayList<int[]> moves;
     private static final int PIECE_PADDING = 15;
     private static final int DEAD_PIECE_SIZE = 30;
     private static final int DEAD_PIECE_PADDING = 10;
@@ -31,6 +34,7 @@ public class Piece {
         setPrevRow(row);
         startCol = col;
         startRow = row;
+        moves = new ArrayList<int[]>();
     }
 
     protected void setPieceImage(String imagePath){
@@ -66,6 +70,10 @@ public class Piece {
         this.prevRow = prevRow;
     }
 
+    public void setHasMoved(){
+        hasMoved = true;
+    }
+
     public int getX(){
         return x;
     }
@@ -82,15 +90,15 @@ public class Piece {
         return row;
     }
 
-    public BufferedImage getPieceImage(){
-        return pieceImage;
-    }
-
     public void draw_piece(Graphics2D g){
         if(isAlive){
             g.drawImage(pieceImage, getX() + Board.BOARD_PADDING + PIECE_PADDING, getY() + PIECE_PADDING, Board.BLOCK_SIZE * 7 / 10, Board.BLOCK_SIZE * 7 / 10, null);
         }else{
             g.drawImage(pieceImage, startCol * DEAD_PIECE_SIZE + DEAD_PIECE_PADDING, startRow * DEAD_PIECE_SIZE + DEAD_PIECE_PADDING + V_PAD, DEAD_PIECE_SIZE, DEAD_PIECE_SIZE, null);
         }
+    }
+
+    public void getMoves(){
+        
     }
 }
