@@ -19,6 +19,7 @@ public class Piece {
     public boolean hasMoved = false;
     public int piece_type;
     public ArrayList<int[]> moves;
+    public ArrayList<int[]> blockedPath;
     private static final int PIECE_PADDING = 15;
     private static final int DEAD_PIECE_SIZE = 30;
     private static final int DEAD_PIECE_PADDING = 10;
@@ -35,6 +36,7 @@ public class Piece {
         startCol = col;
         startRow = row;
         moves = new ArrayList<int[]>();
+        blockedPath = new ArrayList<int[]>();
     }
 
     protected void setPieceImage(String imagePath){
@@ -98,7 +100,6 @@ public class Piece {
         }
     }
 
-    public void getMoves(){
-        
-    }
+    public void getMoves(){}
+    public void removeBlockedPath(){}
 }

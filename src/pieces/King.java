@@ -1,7 +1,5 @@
 package pieces;
 
-import java.util.ArrayList;
-
 import main.GamePanel;
 
 public class King extends Piece{
@@ -41,7 +39,6 @@ public class King extends Piece{
         }
         if(c < 7 && r < 7){
             moves.add(new int[]{c + 1, r + 1});
-            System.out.println("Moves Added");
         }
     }
     
