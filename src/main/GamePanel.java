@@ -6,7 +6,6 @@ import javax.swing.JPanel;
 
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontMetrics;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -28,8 +27,11 @@ public class GamePanel extends JPanel{
     public static final int QUEEN = 4;
     public static final int KING = 5;  
     private boolean running = true;
+    private boolean promoting = false;
     private Graphics2D main_graphics;
     private int currentTurn = LIGHT;
+    public int promotionType = 10;
+    public int promotionPieceIndx = 16;
     public static final int N = 1, NE = 2, E = 3, SE = 4, S = 5, SW = 6, W = 7, NW = 8;
 
     //entities
@@ -38,6 +40,8 @@ public class GamePanel extends JPanel{
     public ArrayList<Piece> Black_pieces = new ArrayList<Piece>();
     public ArrayList<Piece> prevW_pieces = new ArrayList<Piece>();
     public ArrayList<Piece> prevB_pieces = new ArrayList<Piece>();
+    public ArrayList<Piece> proW_pieces = new ArrayList<Piece>();
+    public ArrayList<Piece> proB_pieces = new ArrayList<Piece>();
     public Piece activePiece;
     private MouseHandler main_mouse = new MouseHandler();
     
@@ -133,6 +137,21 @@ public class GamePanel extends JPanel{
         prevB_pieces.add(new Bishop(DARK, 5, 0)); //index 13
         prevB_pieces.add(new Knight(DARK, 6, 0)); //index 14
         prevB_pieces.add(new Rook(DARK, 7,0)); //index 15
+
+        //promotion Light
+        proW_pieces.clear();
+        proW_pieces.add(new Queen(LIGHT, 9, 2));
+        proW_pieces.add(new Bishop(LIGHT, 9, 3));
+        proW_pieces.add(new Knight(LIGHT, 9, 4));
+        proW_pieces.add(new Rook(LIGHT, 9, 5));
+
+        //promoting DARK
+        proB_pieces.clear();
+        proB_pieces.add(new Queen(DARK, 9, 2));
+        proB_pieces.add(new Bishop(DARK, 9, 3));
+        proB_pieces.add(new Knight(DARK, 9, 4));
+        proB_pieces.add(new Rook(DARK, 9, 5));
+
     }
 
     public void gameLoop(){
@@ -150,10 +169,20 @@ public class GamePanel extends JPanel{
 
     private void updateGame(){
         if(activePiece != null){
-            updatePeiceLocation();
+            if(!promoting){
+                updatePeiceLocation();
+            }
         }
+        if(promoting){
+            promotePiece();
+        }
+        checkForPromotion();
         if(main_mouse.clicked){
-            checkActivePiece();
+            if(promoting){
+                checkPromotedPiece();
+            }else{
+                checkActivePiece();
+            }
         }
     }
 
@@ -167,7 +196,11 @@ public class GamePanel extends JPanel{
             drawGlowBlocks();
         }
         drawPieces();
-        drawTurns();
+        if(promoting){
+            drawPromotion();
+        }else{
+            drawTurns();
+        }
     }
 
     public void updateHistory(){
@@ -196,6 +229,79 @@ public class GamePanel extends JPanel{
             for(int i = 0; i < 16; i += 1){
                 White_pieces.get(i).setCol(prevW_pieces.get(i).getCol());
                 White_pieces.get(i).setRow(prevW_pieces.get(i).getRow());
+            }
+        }
+    }
+
+    public void promotePiece(){
+        if(currentTurn == DARK){
+            if(promotionType < 10 && promotionPieceIndx < 8){
+                int col = White_pieces.get(promotionPieceIndx).getCol();
+                if(promotionType == QUEEN){
+                    White_pieces.set(promotionPieceIndx, new Queen(LIGHT, promotionPieceIndx, 6));
+                    White_pieces.get(promotionPieceIndx).setCol(col);
+                    White_pieces.get(promotionPieceIndx).setRow(0);
+                }else if(promotionType == BISHOP){
+                    White_pieces.set(promotionPieceIndx, new Bishop(LIGHT, promotionPieceIndx, 6));
+                    White_pieces.get(promotionPieceIndx).setCol(col);
+                    White_pieces.get(promotionPieceIndx).setRow(0);
+                }else if(promotionType == KNIGHT){
+                    White_pieces.set(promotionPieceIndx, new Knight(LIGHT, promotionPieceIndx, 6));
+                    White_pieces.get(promotionPieceIndx).setCol(col);
+                    White_pieces.get(promotionPieceIndx).setRow(0);
+                }else if(promotionType == ROOK){
+                    White_pieces.set(promotionPieceIndx, new Rook(LIGHT, promotionPieceIndx, 6));
+                    White_pieces.get(promotionPieceIndx).setCol(col);
+                    White_pieces.get(promotionPieceIndx).setRow(0);
+                }
+
+                promoting = false;
+                promotionPieceIndx = 10;
+                promotionType = 10;
+
+                return;
+            }
+        }else{
+            if(promotionType < 10 && promotionPieceIndx < 8){
+                int col = Black_pieces.get(promotionPieceIndx).getCol();
+                if(promotionType == QUEEN){
+                    Black_pieces.set(promotionPieceIndx, new Queen(DARK, promotionPieceIndx, 1));
+                    Black_pieces.get(promotionPieceIndx).setCol(col);
+                    Black_pieces.get(promotionPieceIndx).setRow(7);
+                }else if(promotionType == BISHOP){
+                    Black_pieces.set(promotionPieceIndx, new Bishop(DARK, promotionPieceIndx, 1));
+                    Black_pieces.get(promotionPieceIndx).setCol(col);
+                    Black_pieces.get(promotionPieceIndx).setRow(7);
+                }else if(promotionType == KNIGHT){
+                    Black_pieces.set(promotionPieceIndx, new Knight(DARK, promotionPieceIndx,1));
+                    Black_pieces.get(promotionPieceIndx).setCol(col);
+                    Black_pieces.get(promotionPieceIndx).setRow(7);
+                }else if(promotionType == ROOK){
+                    Black_pieces.set(promotionPieceIndx, new Rook(DARK, promotionPieceIndx, 1));
+                    Black_pieces.get(promotionPieceIndx).setCol(col);
+                    Black_pieces.get(promotionPieceIndx).setRow(7);
+                }
+                promoting = false;
+                promotionPieceIndx = 10;
+                promotionType = 10;
+
+                return;
+            }
+        }
+    }
+
+    private void checkPromotedPiece(){
+        if(currentTurn == DARK){
+            for(Piece w: proW_pieces){
+                if(w.getCol() == main_mouse.getCol() && w.getRow() == main_mouse.getRow()){
+                    promotionType = w.piece_type;
+                }
+            }
+        }else{
+            for(Piece b: proB_pieces){
+                if(b.getCol() == main_mouse.getCol() && b.getRow() == main_mouse.getRow()){
+                    promotionType = b.piece_type;
+                }
             }
         }
     }
@@ -244,8 +350,6 @@ public class GamePanel extends JPanel{
                 }
                 activePiece.setCol(move[0]);
                 activePiece.setRow(move[1]);
-
-                activePiece.hasMoved = true;
                 getKills();
 
                 updateHistory();
@@ -261,6 +365,26 @@ public class GamePanel extends JPanel{
         if(activePiece != null && (main_mouse.getCol() != activePiece.getCol() || main_mouse.getRow() != activePiece.getRow())){
             main_mouse.clicked = false;
             activePiece = null;
+        }
+    }
+
+    public void checkForPromotion(){
+        if(currentTurn == DARK){
+            for(int i = 0; i < 8; i += 1){
+                if(White_pieces.get(i).getRow() == 0 && White_pieces.get(i).piece_type == PAWN){
+                    promotionPieceIndx = i;
+                    promoting = true;
+                    return;
+                }
+            }
+        }else{
+            for(int i = 0; i < 8; i += 1){
+                if(Black_pieces.get(i).getRow() == 7 && Black_pieces.get(i).piece_type == PAWN){
+                    promotionPieceIndx = i;
+                    promoting = true;
+                    return;
+                }
+            }
         }
     }
 
@@ -324,7 +448,7 @@ public class GamePanel extends JPanel{
     public void pawnEnPaasant(){
         if(currentTurn == LIGHT){
             for(int i = 0; i < 8; i += 1){
-                if(!prevB_pieces.get(i).hasMoved && prevB_pieces.get(i).getRow() == Black_pieces.get(i).getRow() - 2){
+                if(Black_pieces.get(i).piece_type == PAWN && !prevB_pieces.get(i).hasMoved && prevB_pieces.get(i).getRow() == Black_pieces.get(i).getRow() - 2){
                     if(Black_pieces.get(i).getRow() == activePiece.getRow()){
                         if(Black_pieces.get(i).getCol() == activePiece.getCol() - 1){
                             activePiece.moves.add(new int[]{activePiece.getCol() - 1, activePiece.getRow() - 1});
@@ -336,7 +460,7 @@ public class GamePanel extends JPanel{
             }
         }else{
             for(int i = 0; i < 8; i += 1){
-                if(!prevW_pieces.get(i).hasMoved && prevW_pieces.get(i).getRow() == White_pieces.get(i).getRow() + 2){
+                if(White_pieces.get(i).piece_type == PAWN && prevW_pieces.get(i).hasMoved && prevW_pieces.get(i).getRow() == White_pieces.get(i).getRow() + 2){
                     if(White_pieces.get(i).getRow() == activePiece.getRow()){
                         if(White_pieces.get(i).getCol() == activePiece.getCol() - 1){
                             activePiece.moves.add(new int[]{activePiece.getCol() - 1, activePiece.getRow() + 1});
@@ -384,7 +508,7 @@ public class GamePanel extends JPanel{
     public void castlingKing(){
         if(!activePiece.hasMoved){
             if(activePiece.color == LIGHT){
-                if(!White_pieces.get(8).hasMoved){
+                if(!White_pieces.get(8).hasMoved && White_pieces.get(8).isAlive){
                     boolean pieceBetween = false;
                     for(Piece w: White_pieces){
                         if(pieceBetween || (w.getCol() == 1 && w.getRow() == 7) || (w.getCol() == 2 && w.getRow() == 7) || (w.getCol() == 3 && w.getRow() == 7)){
@@ -402,7 +526,7 @@ public class GamePanel extends JPanel{
                         activePiece.moves.add(new int[]{2, 7});
                     }
                 }
-                if(!White_pieces.get(15).hasMoved){
+                if(!White_pieces.get(15).hasMoved && White_pieces.get(15).isAlive){
                     boolean pieceBetween = false;
                     for(Piece w: White_pieces){
                         if(pieceBetween || (w.getCol() == 6 && w.getRow() == 7) || (w.getCol() == 5 && w.getRow() == 7)){
@@ -421,7 +545,7 @@ public class GamePanel extends JPanel{
                     }
                 }
             }else{
-                if(!Black_pieces.get(8).hasMoved){
+                if(!Black_pieces.get(8).hasMoved && Black_pieces.get(8).isAlive){
                     boolean pieceBetween = false;
                     for(Piece w: White_pieces){
                         if(pieceBetween || (w.getCol() == 1 && w.getRow() == 0) || (w.getCol() == 2 && w.getRow() == 0) || (w.getCol() == 3 && w.getRow() == 0)){
@@ -439,7 +563,7 @@ public class GamePanel extends JPanel{
                         activePiece.moves.add(new int[]{2, 0});
                     }
                 }
-                if(!Black_pieces.get(15).hasMoved){
+                if(!Black_pieces.get(15).hasMoved && Black_pieces.get(8).isAlive){
                     boolean pieceBetween = false;
                     for(Piece w: White_pieces){
                         if(pieceBetween || (w.getCol() == 6 && w.getRow() == 0) || (w.getCol() == 5 && w.getRow() == 0)){
@@ -582,6 +706,21 @@ public class GamePanel extends JPanel{
         }
     }
 
+    private void drawPromotion(){
+        main_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        main_graphics.setFont(new Font("Book Antiqua", Font.BOLD, 30));
+        main_graphics.setColor(Color.decode("#FFD100"));
+        main_graphics.drawString("PROMOTION", 1115, 200);
+        if(currentTurn == DARK){
+            for(Piece w: proW_pieces){
+                w.draw_piece(main_graphics);
+            }
+        }else{
+            for(Piece b: proB_pieces){
+                b.draw_piece(main_graphics);
+            }
+        }
+    }
     private void drawTurns(){
         main_graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         main_graphics.setFont(new Font("Book Antiqua", Font.BOLD, 30));

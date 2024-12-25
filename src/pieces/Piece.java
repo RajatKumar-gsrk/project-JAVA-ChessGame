@@ -27,8 +27,8 @@ public class Piece {
 
     public Piece(int color, int col, int row){
         this.color = color;
-        setCol(col);
-        setRow(row);
+        this.col = col;
+        this.row = row;
         setX(this.col);
         setY(this.row);
         setPrevCol(col);
@@ -65,11 +65,13 @@ public class Piece {
     public void setCol(int col){
         this.col = col;
         setX(col);
+        hasMoved = true;
     }
 
     public void setRow(int row){
         this.row = row;
         setY(row);
+        hasMoved = true;
     }
 
     public void setPrevCol(int prevCol){
