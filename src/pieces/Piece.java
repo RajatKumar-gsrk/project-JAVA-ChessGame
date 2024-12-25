@@ -48,6 +48,12 @@ public class Piece {
         }
     }
 
+    public void isDead(){
+        isAlive = false;
+        setCol(10);
+        setRow(10);
+    }
+
     public void setX(int col){
         x = col * Board.BLOCK_SIZE;
     }
@@ -58,10 +64,12 @@ public class Piece {
 
     public void setCol(int col){
         this.col = col;
+        setX(col);
     }
 
     public void setRow(int row){
         this.row = row;
+        setY(row);
     }
 
     public void setPrevCol(int prevCol){
@@ -70,10 +78,6 @@ public class Piece {
 
     public void setPrevRow(int prevRow){
         this.prevRow = prevRow;
-    }
-
-    public void setHasMoved(){
-        hasMoved = true;
     }
 
     public int getX(){
