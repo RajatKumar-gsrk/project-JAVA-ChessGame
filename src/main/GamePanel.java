@@ -198,7 +198,7 @@ public class GamePanel extends JPanel{
             if(blackInCheck && currentTurn == LIGHT){
                 recoverHistory();
                 changeColor();
-            }else if(whiteInCheck && currentTurn == DARK){
+            }if(whiteInCheck && currentTurn == DARK){
                 recoverHistory();
                 changeColor();
             }
@@ -239,32 +239,37 @@ public class GamePanel extends JPanel{
 
     public void updateHistory(){
         if(currentTurn == LIGHT){
-            
             for(int i = 0; i < 16; i += 1){
                 prevB_pieces.get(i).setCol(Black_pieces.get(i).getCol());
                 prevB_pieces.get(i).setRow(Black_pieces.get(i).getRow());
+                if(!whiteInCheck){
+                    prevB_pieces.get(i).isAlive = Black_pieces.get(i).isAlive;
+                }
             }
         }else{
-
             for(int i = 0; i < 16; i += 1){
                 prevW_pieces.get(i).setCol(White_pieces.get(i).getCol());
                 prevW_pieces.get(i).setRow(White_pieces.get(i).getRow());
+                if(!blackInCheck){
+                    prevW_pieces.get(i).isAlive = White_pieces.get(i).isAlive;
+                }
             }
         }
     }
 
     public void recoverHistory(){
-        if(currentTurn == LIGHT){
+
             for(int i = 0; i < 16; i += 1){
                 Black_pieces.get(i).setCol(prevB_pieces.get(i).getCol());
                 Black_pieces.get(i).setRow(prevB_pieces.get(i).getRow());
+                Black_pieces.get(i).isAlive = prevB_pieces.get(i).isAlive;
             }
-        }else{
+
             for(int i = 0; i < 16; i += 1){
                 White_pieces.get(i).setCol(prevW_pieces.get(i).getCol());
                 White_pieces.get(i).setRow(prevW_pieces.get(i).getRow());
+                White_pieces.get(i).isAlive = prevW_pieces.get(i).isAlive;
             }
-        }
     }
 
     public void promotePiece(){//replaces peice
@@ -375,7 +380,7 @@ public class GamePanel extends JPanel{
             pawnDiagonalKill(activePiece);
             pawnEnPaasant(activePiece);
         }else if(activePiece.piece_type == KING){
-            addKingSpecialMoves();
+            addKingSpecialMoves(activePiece);
         }
         
 
@@ -383,19 +388,20 @@ public class GamePanel extends JPanel{
             if(main_mouse.getCol() == move[0] && main_mouse.getRow() == move[1]){
                 //set new col, row and move piece there
                 if(activePiece.piece_type == KING){//moving rooks is castling
-                    castlingMoveRook(move[0]);
+                    castlingMoveRook(activePiece, move[0]);
                 }else if(activePiece.piece_type == PAWN){
                     enPassantKill(move[0], move[1]);
                 }
                 activePiece.setCol(move[0]);
                 activePiece.setRow(move[1]);
-                getKills();
-
                 updateHistory();
+                
+                getKills();
 
                 activePiece.moves.clear();
                 activePiece.blockedPath.clear();
                 main_mouse.clicked = false;
+                activePiece.hasMoved = true;
                 activePiece = null;
                 blackInCheck = false;
                 whiteInCheck = false;
@@ -608,13 +614,13 @@ public class GamePanel extends JPanel{
         }
     }
 
-    public void addKingSpecialMoves(){
-        castlingKing();
+    public void addKingSpecialMoves(Piece p){
+        castlingKing(p);
     }
 
-    public void castlingKing(){
-        if(!activePiece.hasMoved){
-            if(activePiece.color == LIGHT){
+    public void castlingKing(Piece p){
+        if(!p.hasMoved){
+            if(p.color == LIGHT){
                 if(!White_pieces.get(8).hasMoved && White_pieces.get(8).isAlive){
                     boolean pieceBetween = false;
                     for(Piece w: White_pieces){
@@ -630,7 +636,7 @@ public class GamePanel extends JPanel{
                         }
                     }
                     if(!pieceBetween){
-                        activePiece.moves.add(new int[]{2, 7});
+                        p.moves.add(new int[]{2, 7});
                     }
                 }
                 if(!White_pieces.get(15).hasMoved && White_pieces.get(15).isAlive){
@@ -648,7 +654,7 @@ public class GamePanel extends JPanel{
                         }
                     }
                     if(!pieceBetween){
-                        activePiece.moves.add(new int[]{6, 7});
+                        p.moves.add(new int[]{6, 7});
                     }
                 }
             }else{
@@ -667,7 +673,7 @@ public class GamePanel extends JPanel{
                         }
                     }
                     if(!pieceBetween){
-                        activePiece.moves.add(new int[]{2, 0});
+                        p.moves.add(new int[]{2, 0});
                     }
                 }
                 if(!Black_pieces.get(15).hasMoved && Black_pieces.get(8).isAlive){
@@ -685,24 +691,24 @@ public class GamePanel extends JPanel{
                         }
                     }
                     if(!pieceBetween){
-                        activePiece.moves.add(new int[]{6, 0});
+                        p.moves.add(new int[]{6, 0});
                     }
                 }
             }
         }
     }
 
-    public void castlingMoveRook(int col){
-        if(col == activePiece.getCol() - 2){
-            if(activePiece.color == LIGHT){
+    public void castlingMoveRook(Piece p, int col){
+        if(col == p.getCol() - 2){
+            if(p.color == LIGHT){
                 White_pieces.get(8).setCol(3);
                 White_pieces.get(8).hasMoved = true;
             }else{
                 Black_pieces.get(8).setCol(3);
                 Black_pieces.get(8).hasMoved = true;
             }
-        }else if(col == activePiece.getCol() + 2){
-            if(activePiece.color == LIGHT){
+        }else if(col == p.getCol() + 2){
+            if(p.color == LIGHT){
                 White_pieces.get(15).setCol(5);
                 White_pieces.get(15).hasMoved = true;
             }else{

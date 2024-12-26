@@ -65,14 +65,12 @@ public class Piece {
     public void setCol(int col){
         this.col = col;
         setX(col);
-        hasMoved = true;
         moves.clear();
     }
 
     public void setRow(int row){
         this.row = row;
         setY(row);
-        hasMoved = true;
         moves.clear();
     }
 
