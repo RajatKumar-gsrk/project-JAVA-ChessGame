@@ -26,24 +26,26 @@ public class GamePanel extends JPanel{
     public static final int BISHOP = 3;
     public static final int QUEEN = 4;
     public static final int KING = 5;  
-    private boolean running = true;
-    private boolean promoting = false;
+    private boolean running;
+    private boolean promoting;
+    private boolean blackInCheck;
+    private boolean whiteInCheck;
     private Graphics2D main_graphics;
-    private int currentTurn = LIGHT;
-    public int promotionType = 10;//update type
-    public int promotionPieceIndx = 10;//which one is to be updated
+    private int currentTurn;
+    public int promotionType;//update type
+    public int promotionPieceIndx;//which one is to be updated
     public static final int N = 1, NE = 2, E = 3, SE = 4, S = 5, SW = 6, W = 7, NW = 8;
 
     //entities
-    private Board main_board = new Board();
-    public ArrayList<Piece> White_pieces = new ArrayList<Piece>();//stores current situation
-    public ArrayList<Piece> Black_pieces = new ArrayList<Piece>();
-    public ArrayList<Piece> prevW_pieces = new ArrayList<Piece>();//stores move history
-    public ArrayList<Piece> prevB_pieces = new ArrayList<Piece>();
-    public ArrayList<Piece> proW_pieces = new ArrayList<Piece>();//stores promotion type pieces
-    public ArrayList<Piece> proB_pieces = new ArrayList<Piece>();
+    private Board main_board;
+    public ArrayList<Piece> White_pieces;//stores current situation
+    public ArrayList<Piece> Black_pieces;
+    public ArrayList<Piece> prevW_pieces;//stores move history
+    public ArrayList<Piece> prevB_pieces;
+    public ArrayList<Piece> proW_pieces;//stores promotion type pieces
+    public ArrayList<Piece> proB_pieces;
     public Piece activePiece;
-    private MouseHandler main_mouse = new MouseHandler();
+    private MouseHandler main_mouse;
     
     public GamePanel(){
         init();
@@ -52,9 +54,27 @@ public class GamePanel extends JPanel{
     private void init(){
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(Color.decode("#708090"));
+        main_board = new Board();
+        White_pieces = new ArrayList<Piece>();//stores current situation
+        Black_pieces = new ArrayList<Piece>();
+        prevW_pieces = new ArrayList<Piece>();//stores move history
+        prevB_pieces = new ArrayList<Piece>();
+        proW_pieces = new ArrayList<Piece>();//stores promotion type pieces
+        proB_pieces = new ArrayList<Piece>();
+        main_mouse = new MouseHandler();
         resetPieces();
         addMouseListener(main_mouse); // add both for MouseInputListener
         addMouseMotionListener(main_mouse);
+
+        running = true;
+        promoting = false;
+        blackInCheck = false;
+        whiteInCheck = false;
+
+        currentTurn = LIGHT;
+        promotionType = 10;
+        promotionPieceIndx = 10;
+
     }
 
     public void resetPieces(){
@@ -173,6 +193,9 @@ public class GamePanel extends JPanel{
                 updatePeiceLocation();
             }
         }
+        if(activePiece ==null){
+            kingInCheck();
+        }
         if(promoting){
             promotePiece();
         }
@@ -180,8 +203,14 @@ public class GamePanel extends JPanel{
         if(main_mouse.clicked){
             if(promoting){
                 checkPromotedPiece();
-            }else{
+            }else {
+                if(!blackInCheck && !whiteInCheck){
                 checkActivePiece();
+                }else if(blackInCheck){
+                    activePiece = Black_pieces.get(12);
+                }else if(whiteInCheck){
+                    activePiece = White_pieces.get(12);
+                }
             }
         }
     }
@@ -192,6 +221,9 @@ public class GamePanel extends JPanel{
 
         main_graphics = (Graphics2D) g;
         main_board.drawBoard(main_graphics);
+        if(blackInCheck || whiteInCheck){
+            drawCheck();
+        }
         if(activePiece != null){
             drawGlowBlocks();
         }
@@ -201,6 +233,7 @@ public class GamePanel extends JPanel{
         }else{
             drawTurns();
         }
+
     }
 
     public void updateHistory(){
@@ -363,6 +396,8 @@ public class GamePanel extends JPanel{
                 activePiece.blockedPath.clear();
                 main_mouse.clicked = false;
                 activePiece = null;
+                blackInCheck = false;
+                whiteInCheck = false;
                 changeColor();
                 break;
             }
@@ -371,6 +406,70 @@ public class GamePanel extends JPanel{
         if(activePiece != null && (main_mouse.getCol() != activePiece.getCol() || main_mouse.getRow() != activePiece.getRow())){
             main_mouse.clicked = false;
             activePiece = null;
+        }
+    }
+
+    public void kingInCheck(){
+        if(currentTurn == LIGHT){
+            Piece dummy = White_pieces.get(12);
+            for(Piece b: Black_pieces){
+                if(b.piece_type == KING){
+                    continue;
+                }
+                b.getMoves();
+
+                if(b.piece_type != KNIGHT){
+                    if(b.piece_type != KING){
+                        addBlockedPath(b);
+                    }
+                    b.removeBlockedPath();
+                }
+
+                removeCollisions(b);
+
+                if(b.piece_type == PAWN){
+                    pawnDiagonalKill(b);
+                }
+
+                for(int[] move: b.moves){
+                    if(move[0] == dummy.getCol() && move[1] == dummy.getRow()){
+                        whiteInCheck = true;
+                        System.out.println("White in CHECK");
+                    }
+                }
+
+                b.moves.clear();
+            }
+        }else{
+            Piece dummy = Black_pieces.get(12);
+            for(Piece b: White_pieces){
+                if(b.piece_type == KING){
+                    continue;
+                }
+                b.getMoves();
+
+                if(b.piece_type != KNIGHT){
+                    if(b.piece_type != KING){
+                        addBlockedPath(b);
+                    }
+                    b.removeBlockedPath();
+                }
+
+                removeCollisions(b);
+
+                if(b.piece_type == PAWN){
+                    pawnDiagonalKill(b);
+                }
+
+                for(int[] move: b.moves){
+                    if(move[0] == dummy.getCol() && move[1] == dummy.getRow()){
+                        blackInCheck = true;
+                        System.out.println("Black in CHECK");
+                    }
+                }
+
+                b.moves.clear();
+            }
         }
     }
 
@@ -683,7 +782,7 @@ public class GamePanel extends JPanel{
                     for(int[] wMove: w.moves){
                         if(pMove[0] == wMove[0] && pMove[1] == wMove[1]){
                             System.out.println("piece location: "+ w.getCol() + ", " + w.getRow());
-                            p.blockedPath.add(new int[]{pMove[0], pMove[1]});
+                            p.blockedPath.add(new int[]{pMove[0], pMove[1], w.piece_type});
                         }
                     }
                 }
@@ -822,6 +921,16 @@ public class GamePanel extends JPanel{
         }else{
             main_graphics.drawString("BLACK's turn", 1115, 400);
         }
+
+        if(blackInCheck){
+            main_graphics.setFont(new Font("Book Antiqua", Font.BOLD, 20));
+            main_graphics.setColor(Color.BLACK);
+            main_graphics.drawString("BLACK's in CHECK", 1115, 370);
+        }else if(whiteInCheck){
+            main_graphics.setFont(new Font("Book Antiqua", Font.BOLD, 20));
+            main_graphics.setColor(Color.WHITE);
+            main_graphics.drawString("WHITE's in CHECK", 1115, 370);
+        }
     }
 
     private void drawGlowBlocks(){
@@ -866,5 +975,17 @@ public class GamePanel extends JPanel{
                 }
             }
         }
+    }
+
+    public void drawCheck(){
+        main_graphics.setColor(new Color(200, 0, 0, 200));
+        Piece p;
+        if(blackInCheck){
+            p = Black_pieces.get(12);
+        }else{
+            p = White_pieces.get(12);
+        }
+
+        main_graphics.fillRect(p.getCol() * Board.BLOCK_SIZE + Board.BOARD_PADDING, p.getRow() * Board.BLOCK_SIZE, Board.BLOCK_SIZE, Board.BLOCK_SIZE);
     }
 }
