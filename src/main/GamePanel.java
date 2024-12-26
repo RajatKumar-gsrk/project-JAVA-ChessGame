@@ -30,17 +30,17 @@ public class GamePanel extends JPanel{
     private boolean promoting = false;
     private Graphics2D main_graphics;
     private int currentTurn = LIGHT;
-    public int promotionType = 10;
-    public int promotionPieceIndx = 16;
+    public int promotionType = 10;//update type
+    public int promotionPieceIndx = 10;//which one is to be updated
     public static final int N = 1, NE = 2, E = 3, SE = 4, S = 5, SW = 6, W = 7, NW = 8;
 
     //entities
     private Board main_board = new Board();
-    public ArrayList<Piece> White_pieces = new ArrayList<Piece>();
+    public ArrayList<Piece> White_pieces = new ArrayList<Piece>();//stores current situation
     public ArrayList<Piece> Black_pieces = new ArrayList<Piece>();
-    public ArrayList<Piece> prevW_pieces = new ArrayList<Piece>();
+    public ArrayList<Piece> prevW_pieces = new ArrayList<Piece>();//stores move history
     public ArrayList<Piece> prevB_pieces = new ArrayList<Piece>();
-    public ArrayList<Piece> proW_pieces = new ArrayList<Piece>();
+    public ArrayList<Piece> proW_pieces = new ArrayList<Piece>();//stores promotion type pieces
     public ArrayList<Piece> proB_pieces = new ArrayList<Piece>();
     public Piece activePiece;
     private MouseHandler main_mouse = new MouseHandler();
@@ -233,7 +233,7 @@ public class GamePanel extends JPanel{
         }
     }
 
-    public void promotePiece(){
+    public void promotePiece(){//replaces peice
         if(currentTurn == DARK){
             if(promotionType < 10 && promotionPieceIndx < 8){
                 int col = White_pieces.get(promotionPieceIndx).getCol();
@@ -290,7 +290,7 @@ public class GamePanel extends JPanel{
         }
     }
 
-    private void checkPromotedPiece(){
+    private void checkPromotedPiece(){//check what is new peice type
         if(currentTurn == DARK){
             for(Piece w: proW_pieces){
                 if(w.getCol() == main_mouse.getCol() && w.getRow() == main_mouse.getRow()){
@@ -326,15 +326,20 @@ public class GamePanel extends JPanel{
     public void updatePeiceLocation(){ //sequence of this funtion matters MOST
         activePiece.getMoves();
 
-        if(activePiece.piece_type != KNIGHT && activePiece.piece_type != KING){
-            addBlockedPath();
+        if(activePiece.piece_type != KNIGHT){
+            if(activePiece.piece_type != KING){
+                addBlockedPath(activePiece);
+            }else{
+                kingIllegalMoves(activePiece);
+            }
             activePiece.removeBlockedPath();
         }
 
-        removeCollisions();
+        removeCollisions(activePiece);
 
         if(activePiece.piece_type == PAWN){
-            addPawnSpecialMoves();
+            pawnDiagonalKill(activePiece);
+            pawnEnPaasant(activePiece);
         }else if(activePiece.piece_type == KING){
             addKingSpecialMoves();
         }
@@ -355,6 +360,7 @@ public class GamePanel extends JPanel{
                 updateHistory();
 
                 activePiece.moves.clear();
+                activePiece.blockedPath.clear();
                 main_mouse.clicked = false;
                 activePiece = null;
                 changeColor();
@@ -388,25 +394,31 @@ public class GamePanel extends JPanel{
         }
     }
 
-    private void removeCollisions(){
-        if(activePiece.color == LIGHT || activePiece.piece_type == PAWN){
+    private void removeCollisions(Piece p){
+        if(p.color == LIGHT || p.piece_type == PAWN){
             for(Piece w: White_pieces){
+                if(!w.isAlive){
+                    continue;
+                }
                 int i = 0;
-                while(i < activePiece.moves.size()){
-                    if(w.getCol() == activePiece.moves.get(i)[0] && w.getRow() == activePiece.moves.get(i)[1]){
-                        activePiece.moves.remove(i);
+                while(i < p.moves.size()){
+                    if(w.getCol() == p.moves.get(i)[0] && w.getRow() == p.moves.get(i)[1]){
+                        p.moves.remove(i);
                     }else{
                         i += 1;
                     }
                 }
             }
         }
-        if(activePiece.color == DARK || activePiece.piece_type == PAWN){
+        if(p.color == DARK || p.piece_type == PAWN){
             for(Piece b: Black_pieces){
+                if(!b.isAlive){
+                    continue;
+                }
                 int i = 0;
-                while(i < activePiece.moves.size()){
-                    if(b.getCol() == activePiece.moves.get(i)[0] && b.getRow() == activePiece.moves.get(i)[1]){
-                        activePiece.moves.remove(i);
+                while(i < p.moves.size()){
+                    if(b.getCol() == p.moves.get(i)[0] && b.getRow() == p.moves.get(i)[1]){
+                        p.moves.remove(i);
                     }else{
                         i += 1;
                     }
@@ -415,45 +427,40 @@ public class GamePanel extends JPanel{
         }
     }
 
-    public void addPawnSpecialMoves(){
-        pawnDiagonalKill();
-        pawnEnPaasant();
-    }
+    public void pawnDiagonalKill(Piece p){
+        int c = p.getCol();
+        int r = p.getRow();
 
-    public void pawnDiagonalKill(){
-        int c = activePiece.getCol();
-        int r = activePiece.getRow();
-
-        if(activePiece.color == DARK && r < 7){
+        if(p.color == DARK && r < 7){
             for(Piece w: White_pieces){
                 if(w.getCol() == c - 1 && w.getRow() == r + 1){
-                    activePiece.moves.add(new int[]{c - 1, r + 1});
+                    p.moves.add(new int[]{c - 1, r + 1});
                 }
                 if(w.getCol() == c + 1 && w.getRow() == r + 1){
-                    activePiece.moves.add(new int[]{c + 1, r + 1});
+                    p.moves.add(new int[]{c + 1, r + 1});
                 }
             }
-        }else if(activePiece.color == LIGHT && r > 0){
+        }else if(p.color == LIGHT && r > 0){
             for(Piece b: Black_pieces){
                 if(b.getCol() == c - 1 && b.getRow() == r - 1){
-                    activePiece.moves.add(new int[]{c - 1, r - 1});
+                    p.moves.add(new int[]{c - 1, r - 1});
                 }
                 if(b.getCol() == c + 1 && b.getRow() == r - 1){
-                    activePiece.moves.add(new int[]{c + 1, r - 1});
+                    p.moves.add(new int[]{c + 1, r - 1});
                 }
             }
         }
     }
 
-    public void pawnEnPaasant(){
+    public void pawnEnPaasant(Piece p){
         if(currentTurn == LIGHT){
             for(int i = 0; i < 8; i += 1){
                 if(Black_pieces.get(i).piece_type == PAWN && !prevB_pieces.get(i).hasMoved && prevB_pieces.get(i).getRow() == Black_pieces.get(i).getRow() - 2){
-                    if(Black_pieces.get(i).getRow() == activePiece.getRow()){
-                        if(Black_pieces.get(i).getCol() == activePiece.getCol() - 1){
-                            activePiece.moves.add(new int[]{activePiece.getCol() - 1, activePiece.getRow() - 1});
-                        }else if(Black_pieces.get(i).getCol() == activePiece.getCol() + 1){
-                            activePiece.moves.add(new int[]{activePiece.getCol() + 1, activePiece.getRow() - 1});
+                    if(Black_pieces.get(i).getRow() == p.getRow()){
+                        if(Black_pieces.get(i).getCol() == p.getCol() - 1){
+                            p.moves.add(new int[]{p.getCol() - 1, p.getRow() - 1});
+                        }else if(Black_pieces.get(i).getCol() == p.getCol() + 1){
+                            p.moves.add(new int[]{p.getCol() + 1, p.getRow() - 1});
                         }
                     }
                 }
@@ -461,11 +468,11 @@ public class GamePanel extends JPanel{
         }else{
             for(int i = 0; i < 8; i += 1){
                 if(White_pieces.get(i).piece_type == PAWN && prevW_pieces.get(i).hasMoved && prevW_pieces.get(i).getRow() == White_pieces.get(i).getRow() + 2){
-                    if(White_pieces.get(i).getRow() == activePiece.getRow()){
-                        if(White_pieces.get(i).getCol() == activePiece.getCol() - 1){
-                            activePiece.moves.add(new int[]{activePiece.getCol() - 1, activePiece.getRow() + 1});
-                        }else if(White_pieces.get(i).getCol() == activePiece.getCol() + 1){
-                            activePiece.moves.add(new int[]{activePiece.getCol() + 1, activePiece.getRow() + 1});
+                    if(White_pieces.get(i).getRow() == p.getRow()){
+                        if(White_pieces.get(i).getCol() == p.getCol() - 1){
+                            p.moves.add(new int[]{p.getCol() - 1, p.getRow() + 1});
+                        }else if(White_pieces.get(i).getCol() == p.getCol() + 1){
+                            p.moves.add(new int[]{p.getCol() + 1, p.getRow() + 1});
                         }
                     }
                 }
@@ -605,28 +612,113 @@ public class GamePanel extends JPanel{
         }
     }
 
-    public void addBlockedPath(){
-        activePiece.blockedPath.clear();
-        for(int[] move: activePiece.moves){
+    public void addBlockedPath(Piece p){
+        p.blockedPath.clear();
+        for(int[] move: p.moves){
             for(Piece w : White_pieces){
+                if(!w.isAlive){
+                    continue;
+                }
                 if(move[0] == w.getCol() && move[1] == w.getRow()){
-                    int relativePos = determinePos(move[0], move[1]);
-                    activePiece.blockedPath.add(new int[]{move[0], move[1], relativePos});
+                    int relativePos = determinePos(p, move[0], move[1]);
+                    p.blockedPath.add(new int[]{move[0], move[1], relativePos});
                 }
             }
 
             for(Piece b : Black_pieces){
+                if(!b.isAlive){
+                    continue;
+                }
                 if(move[0] == b.getCol() && move[1] == b.getRow()){
-                    int relativePos = determinePos(move[0], move[1]);
-                    activePiece.blockedPath.add(new int[]{move[0], move[1], relativePos});
+                    int relativePos = determinePos(p, move[0], move[1]);
+                    p.blockedPath.add(new int[]{move[0], move[1], relativePos});
                 }
             }
         }
     }
 
-    public int determinePos(int c, int r){
-        int x = activePiece.getCol();
-        int y = activePiece.getRow();
+    public void addBlockedPathNoKing(Piece p){
+        p.blockedPath.clear();
+        for(int[] move: p.moves){
+            for(Piece w : White_pieces){
+                if(!w.isAlive || w.piece_type == KING){
+                    continue;
+                }
+                if(move[0] == w.getCol() && move[1] == w.getRow()){
+                    int relativePos = determinePos(p, move[0], move[1]);
+                    p.blockedPath.add(new int[]{move[0], move[1], relativePos});
+                }
+            }
+
+            for(Piece b : Black_pieces){
+                if(!b.isAlive || b.piece_type == KING){
+                    continue;
+                }
+                if(move[0] == b.getCol() && move[1] == b.getRow()){
+                    int relativePos = determinePos(p, move[0], move[1]);
+                    p.blockedPath.add(new int[]{move[0], move[1], relativePos});
+                }
+            }
+        }
+    }
+
+    public void kingIllegalMoves(Piece p){
+        if(p.color == DARK){
+            for(int[] pMove: p.moves){
+                Piece dummy = new King(DARK, pMove[0], pMove[1]);
+                Black_pieces.add(dummy);
+                for(Piece w: White_pieces){
+                    if(w.piece_type == KING || !w.isAlive){
+                        continue;
+                    }
+                    w.getMoves();
+                    if(w.piece_type == PAWN){
+                        removeCollisions(w);
+                        pawnDiagonalKill(w);
+                    }
+                    addBlockedPathNoKing(w);
+                    w.removeBlockedPath();
+                    
+
+                    for(int[] wMove: w.moves){
+                        if(pMove[0] == wMove[0] && pMove[1] == wMove[1]){
+                            System.out.println("piece location: "+ w.getCol() + ", " + w.getRow());
+                            p.blockedPath.add(new int[]{pMove[0], pMove[1]});
+                        }
+                    }
+                }
+                Black_pieces.remove(16);
+            }
+        }else{
+            for(int[] pMove: p.moves){
+                Piece dummy = new King(LIGHT, pMove[0], pMove[1]);
+                White_pieces.add(dummy);
+                for(Piece w: Black_pieces){
+                    if(w.piece_type == KING || !w.isAlive){
+                        continue;
+                    }
+                    w.getMoves();
+                    if(w.piece_type == PAWN){
+                        removeCollisions(w);
+                        pawnDiagonalKill(w);
+                    }
+                    addBlockedPathNoKing(w);
+                    w.removeBlockedPath();
+
+                    for(int[] wMove: w.moves){
+                        if(pMove[0] == wMove[0] && pMove[1] == wMove[1]){
+                            System.out.println("piece location: "+ w.getCol() + ", " + w.getRow());
+                            p.blockedPath.add(new int[]{pMove[0], pMove[1], w.piece_type});
+                        }
+                    }
+                }
+                White_pieces.remove(16);
+            }
+        }
+    }
+    public int determinePos(Piece p, int c, int r){
+        int x = p.getCol();
+        int y = p.getRow();
 
         int pos = 0, up = 0, down = 0, left = 0, right = 0;
         if(r < y){

@@ -42,4 +42,18 @@ public class King extends Piece{
         }
     }
     
+    public void removeBlockedPath(){
+        for(int[] blockedMove: blockedPath){
+            int i = 0;
+            while(i < moves.size()){
+                if(blockedMove[0] == moves.get(i)[0] && blockedMove[1] == moves.get(i)[1]){
+                    moves.remove(i);
+                    System.out.println("Type: "+ blockedMove[2]);
+                }else{
+                    i += 1;
+                }
+            }
+        }
+        blockedPath.clear();
+    }
 }
