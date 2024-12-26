@@ -195,6 +195,13 @@ public class GamePanel extends JPanel{
         }
         if(activePiece ==null){
             kingInCheck();
+            if(blackInCheck && currentTurn == LIGHT){
+                recoverHistory();
+                changeColor();
+            }else if(whiteInCheck && currentTurn == DARK){
+                recoverHistory();
+                changeColor();
+            }
         }
         if(promoting){
             promotePiece();
@@ -204,13 +211,7 @@ public class GamePanel extends JPanel{
             if(promoting){
                 checkPromotedPiece();
             }else {
-                if(!blackInCheck && !whiteInCheck){
                 checkActivePiece();
-                }else if(blackInCheck){
-                    activePiece = Black_pieces.get(12);
-                }else if(whiteInCheck){
-                    activePiece = White_pieces.get(12);
-                }
             }
         }
     }
@@ -410,7 +411,7 @@ public class GamePanel extends JPanel{
     }
 
     public void kingInCheck(){
-        if(currentTurn == LIGHT){
+
             Piece dummy = White_pieces.get(12);
             for(Piece b: Black_pieces){
                 if(b.piece_type == KING){
@@ -440,8 +441,8 @@ public class GamePanel extends JPanel{
 
                 b.moves.clear();
             }
-        }else{
-            Piece dummy = Black_pieces.get(12);
+
+            dummy = Black_pieces.get(12);
             for(Piece b: White_pieces){
                 if(b.piece_type == KING){
                     continue;
@@ -470,7 +471,7 @@ public class GamePanel extends JPanel{
 
                 b.moves.clear();
             }
-        }
+        
     }
 
     public void checkForPromotion(){
