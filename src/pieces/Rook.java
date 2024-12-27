@@ -93,5 +93,7 @@ public class Rook extends Piece{
                 }
             }
         }
+
+        blockedPath.clear();
     }
 }

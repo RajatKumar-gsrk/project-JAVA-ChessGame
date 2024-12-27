@@ -61,5 +61,7 @@ public class Pawn extends Piece{
                 }
             }
         }
+
+        blockedPath.clear();
     }
 }

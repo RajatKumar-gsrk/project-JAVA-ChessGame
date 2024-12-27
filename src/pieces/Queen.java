@@ -160,6 +160,8 @@ public class Queen extends Piece{
 
             
         }
+
+        blockedPath.clear();
     }
 
 
