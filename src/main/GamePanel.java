@@ -3,6 +3,11 @@ package main;
 import pieces.*;
 
 import javax.imageio.ImageIO;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineUnavailableException;
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JPanel;
 
 import java.awt.Dimension;
@@ -17,6 +22,8 @@ import java.awt.Stroke;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class GamePanel extends JPanel {
@@ -45,7 +52,10 @@ public class GamePanel extends JPanel {
     private int currentTurn;
     public int promotionType;// update type
     public int promotionPieceIndx;// which one is to be updated
-    long display_start_time;
+    public long display_start_time;
+    private boolean playCheckSound;
+    private boolean playPromotionSound;
+    public Clip currentClip;
     public static final int N = 1, NE = 2, E = 3, SE = 4, S = 5, SW = 6, W = 7, NW = 8;
     ArrayList<int[]> pathWay;
 
@@ -105,7 +115,11 @@ public class GamePanel extends JPanel {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        currentClip = null;
+        playCheckSound = false;
+        playPromotionSound = false;
+        playSound("file:./resources/audio/mute.wav");
+        playSound("file:./resources/audio/level_start.wav");
         display_start_time = System.nanoTime();
     }
 
@@ -214,7 +228,7 @@ public class GamePanel extends JPanel {
                 e.printStackTrace();
             }
 
-            if(5 - (System.nanoTime()- display_start_time)/ 1000000000 < 0){
+            if (5 - (System.nanoTime() - display_start_time) / 1000000000 < 0) {
                 updateGame();
             }
             repaint();
@@ -230,7 +244,9 @@ public class GamePanel extends JPanel {
         if (activePiece == null) {
             whiteKingInCheck();
             blackKingInCheck();
-
+            if(!blackInCheck && !whiteInCheck){
+                playCheckSound = false;
+            }
             if (whiteInCheck == false) {
                 whiteInCheckPrev = false;
                 whiteCheckingPiece = null;
@@ -259,36 +275,50 @@ public class GamePanel extends JPanel {
                 recoverHistory();
                 changeColor();
             }
-
+            
             if (blackInCheck) {
+                if(playCheckSound == false){
+                    playCheck();
+                }
                 inCheckMate = isBlackCheckMate();
                 if (inCheckMate) {
+                    playCheckMateSound();
                     running = false;
                 }
             }
 
             if (whiteInCheck) {
+                if(playCheckSound == false){
+                    playCheck();
+                }
                 inCheckMate = isWhiteCheckMate();
                 if (inCheckMate) {
+                    playCheckMateSound();
                     running = false;
                 }
             }
 
             if (isBlackStaleMate) {
+                playStalemate();
                 running = false;
             }
 
             if (isWhiteStaleMate) {
+                playStalemate();
                 running = false;
             }
 
         }
         if (promoting) {
+            if(playPromotionSound == false){
+                playPromotion();
+            }
             promotePiece();
         }
         checkForPromotion();
         if (main_mouse.clicked) {
-            if(main_mouse.getX() >= 20 && main_mouse.getX() <= 50 && main_mouse.getY() >= 20 && main_mouse.getY() <= 50){
+            if (main_mouse.getX() >= 20 && main_mouse.getX() <= 50 && main_mouse.getY() >= 20
+                    && main_mouse.getY() <= 50) {
                 init();
             }
             if (promoting) {
@@ -322,7 +352,7 @@ public class GamePanel extends JPanel {
         } else {
             drawTurns();
         }
-        if(5 - (System.nanoTime()- display_start_time)/ 1000000000 > 0){
+        if (5 - (System.nanoTime() - display_start_time) / 1000000000 > 0) {
             drawGameStart();
         }
 
@@ -466,6 +496,7 @@ public class GamePanel extends JPanel {
                 } else if (activePiece.piece_type == PAWN) {
                     enPassantKill(move[0], move[1]);
                 }
+                playMove();
                 activePiece.setCol(move[0]);
                 activePiece.setRow(move[1]);
                 getKills(activePiece);
@@ -484,6 +515,7 @@ public class GamePanel extends JPanel {
                 blackInCheck = false;
                 whiteInCheck = false;
                 changeColor();
+                playPromotionSound = false;
                 break;
             }
         }
@@ -1146,7 +1178,7 @@ public class GamePanel extends JPanel {
 
         for (int[] move : p.moves) {
             for (Piece w : White_pieces) {
-                if (!w.isAlive || w.piece_type == KNIGHT) {
+                if (!w.isAlive) {
                     continue;
                 }
                 if (move[0] == w.getCol() && move[1] == w.getRow()) {
@@ -1156,7 +1188,7 @@ public class GamePanel extends JPanel {
             }
 
             for (Piece b : Black_pieces) {
-                if (!b.isAlive || b.piece_type == KNIGHT) {
+                if (!b.isAlive) {
                     continue;
                 }
                 if (move[0] == b.getCol() && move[1] == b.getRow()) {
@@ -1281,6 +1313,7 @@ public class GamePanel extends JPanel {
         if (p.color == DARK) {
             for (Piece w : White_pieces) {
                 if (w.getCol() == p.getCol() && w.getRow() == p.getRow()) {
+                    playKill();
                     w.isDead();
                     break;
                 }
@@ -1288,6 +1321,7 @@ public class GamePanel extends JPanel {
         } else {
             for (Piece b : Black_pieces) {
                 if (b.getCol() == p.getCol() && b.getRow() == p.getRow()) {
+                    playKill();
                     b.isDead();
                     break;
                 }
@@ -1407,7 +1441,8 @@ public class GamePanel extends JPanel {
             p = White_pieces.get(12);
         }
 
-        main_graphics.fillRect(p.getCol() * Board.BLOCK_SIZE + Board.BOARD_PADDING, p.getRow() * Board.BLOCK_SIZE, Board.BLOCK_SIZE, Board.BLOCK_SIZE);
+        main_graphics.fillRect(p.getCol() * Board.BLOCK_SIZE + Board.BOARD_PADDING, p.getRow() * Board.BLOCK_SIZE,
+                Board.BLOCK_SIZE, Board.BLOCK_SIZE);
     }
 
     public void drawCheckMate() {
@@ -1431,19 +1466,20 @@ public class GamePanel extends JPanel {
         main_graphics.drawString("STALEMATE", 1080, 410);
     }
 
-    public void drawRestart(){
+    public void drawRestart() {
         main_graphics.drawImage(restartImage, 20, 20, 30, 30, null);
     }
 
-    public void drawGameStart(){
+    public void drawGameStart() {
         main_graphics.setColor(Color.decode("#708090"));
         main_graphics.fillRect(0, 0, WIDTH, HEIGHT);
         main_graphics.setFont(new Font("Book Antiqua", Font.BOLD, 100));
         FontMetrics fm = main_graphics.getFontMetrics();
-        
-        String start_level_display = String.format("Next Game Starting In %d", 5 - (System.nanoTime()- display_start_time)/ 1000000000);
-        int x = (WIDTH - fm.stringWidth(start_level_display))/2;
-        int y = (HEIGHT - fm.getHeight())/2 + 50;
+
+        String start_level_display = String.format("Next Game Starting In %d",
+                5 - (System.nanoTime() - display_start_time) / 1000000000);
+        int x = (WIDTH - fm.stringWidth(start_level_display)) / 2;
+        int y = (HEIGHT - fm.getHeight()) / 2 + 50;
         main_graphics.setColor(Color.WHITE);
         main_graphics.drawString(start_level_display, x, y);
 
@@ -1451,4 +1487,53 @@ public class GamePanel extends JPanel {
         main_graphics.setFont(new Font("Book Antiqua", Font.BOLD, 30));
         main_graphics.drawString("By RAJAT KUMAR", x, y + 50);
     }
+
+    public void playSound(String Path) {
+        try {
+            if(currentClip != null && currentClip.isRunning()){
+                currentClip.stop();
+            }
+            @SuppressWarnings("deprecation")
+            URL filePath = new URL(Path);
+            AudioInputStream ais = AudioSystem.getAudioInputStream(filePath);
+            currentClip = AudioSystem.getClip();
+            currentClip.open(ais);
+            currentClip.start();
+        } catch (MalformedURLException me) {
+            me.printStackTrace();
+        } catch (UnsupportedAudioFileException uafe) {
+            uafe.printStackTrace();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        } catch (LineUnavailableException lue) {
+            lue.printStackTrace();
+        }
+    }
+
+    public void playCheckMateSound() {
+        playSound("file:./resources/audio/check_mate.wav");
+    }
+
+    public void playKill() {
+        playSound("file:./resources/audio/piece_dead.wav");
+    }
+
+    public void playCheck() {
+        playCheckSound = true;
+        playSound("file:./resources/audio/in_check.wav");
+    }
+
+    public void playMove() {
+        playSound("file:./resources/audio/piece_select_or_move.wav");
+    }
+
+    public void playStalemate() {
+        playSound("file:./resources/audio/stalemate.wav");
+    }
+
+    public void playPromotion(){
+        playPromotionSound = true;
+        playSound("file:./resources/audio/promotion.wav");
+    }
+
 }
