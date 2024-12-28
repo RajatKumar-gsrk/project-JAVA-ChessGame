@@ -12,11 +12,7 @@ public class MouseHandler implements MouseInputListener { //use MouseInputAdapte
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        clicked = true;
-        x = e.getX();
-        y = e.getY();
-        setCol(x);
-        setRow(y);
+        
     }
 
     @Override
@@ -25,6 +21,11 @@ public class MouseHandler implements MouseInputListener { //use MouseInputAdapte
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        clicked = true;
+        x = e.getX();
+        y = e.getY();
+        setCol(x);
+        setRow(y);
     }
 
     @Override
