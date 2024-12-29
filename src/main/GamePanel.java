@@ -1019,7 +1019,7 @@ public class GamePanel extends JPanel {
             }
         } else {
             for (int i = 0; i < 8; i += 1) {
-                if (White_pieces.get(i).piece_type == PAWN && prevW_pieces.get(i).hasMoved
+                if (White_pieces.get(i).piece_type == PAWN && !prevW_pieces.get(i).hasMoved
                         && prevW_pieces.get(i).getRow() == White_pieces.get(i).getRow() + 2) {
                     if (White_pieces.get(i).getRow() == p.getRow()) {
                         if (White_pieces.get(i).getCol() == p.getCol() - 1) {
@@ -1042,6 +1042,7 @@ public class GamePanel extends JPanel {
             }
             for (int i = 0; i < 8; i += 1) {
                 if (White_pieces.get(i).getCol() == col && White_pieces.get(i).getRow() == row - 1) {
+                    playKill();
                     White_pieces.get(i).isDead();
                     return;
                 }
@@ -1054,6 +1055,7 @@ public class GamePanel extends JPanel {
             }
             for (int i = 0; i < 8; i += 1) {
                 if (Black_pieces.get(i).getCol() == col && Black_pieces.get(i).getRow() == row + 1) {
+                    playKill();
                     Black_pieces.get(i).isDead();
                     return;
                 }
