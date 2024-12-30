@@ -585,7 +585,7 @@ public class GamePanel extends JPanel {
     public void whiteKingInCheck() {
         Piece dummy = White_pieces.get(12);
         for (Piece b : Black_pieces) {
-            if (b.piece_type == KING) {
+            if (b.piece_type == KING || b.isAlive == false) {
                 continue;
             }
             b.getMoves();
@@ -617,7 +617,7 @@ public class GamePanel extends JPanel {
     public void blackKingInCheck() {
         Piece dummy = Black_pieces.get(12);
         for (Piece b : White_pieces) {
-            if (b.piece_type == KING) {
+            if (b.piece_type == KING || b.isAlive == false) {
                 continue;
             }
             b.getMoves();
@@ -657,7 +657,7 @@ public class GamePanel extends JPanel {
         }
 
         for (Piece b : Black_pieces) {
-            if (b.piece_type == KING) {
+            if (b.piece_type == KING || !b.isAlive) {
                 continue;
             }
             addToMoves(b);
@@ -707,7 +707,7 @@ public class GamePanel extends JPanel {
         }
 
         for (Piece b : White_pieces) {
-            if (b.piece_type == KING) {
+            if (b.piece_type == KING || !b.isAlive) {
                 continue;
             }
             addToMoves(b);
@@ -785,6 +785,9 @@ public class GamePanel extends JPanel {
 
     public boolean blockAvailableForWhite(int c, int r) {
         for (Piece w : White_pieces) {
+            if(!w.isAlive){
+                continue;
+            }
             if (c == w.getCol() && r - 1 == w.getRow()) {// N
                 return false;
             }
@@ -823,6 +826,9 @@ public class GamePanel extends JPanel {
 
     public boolean blockAvailableForBlack(int c, int r) {
         for (Piece w : Black_pieces) {
+            if(!w.isAlive){
+                continue;
+            }
             if (c == w.getCol() && r - 1 == w.getRow()) {// N
                 return false;
             }
@@ -984,6 +990,9 @@ public class GamePanel extends JPanel {
 
         if (p.color == DARK && r < 7) {
             for (Piece w : White_pieces) {
+                if(!w.isAlive){
+                    continue;
+                }
                 if (w.getCol() == c - 1 && w.getRow() == r + 1) {
                     p.moves.add(new int[] { c - 1, r + 1 });
                 }
@@ -993,6 +1002,9 @@ public class GamePanel extends JPanel {
             }
         } else if (p.color == LIGHT && r > 0) {
             for (Piece b : Black_pieces) {
+                if(!b.isAlive){
+                    continue;
+                }
                 if (b.getCol() == c - 1 && b.getRow() == r - 1) {
                     p.moves.add(new int[] { c - 1, r - 1 });
                 }
@@ -1314,6 +1326,9 @@ public class GamePanel extends JPanel {
     private void getKills(Piece p) {
         if (p.color == DARK) {
             for (Piece w : White_pieces) {
+                if(!w.isAlive){
+                    continue;
+                }
                 if (w.getCol() == p.getCol() && w.getRow() == p.getRow()) {
                     playKill();
                     w.isDead();
@@ -1322,6 +1337,9 @@ public class GamePanel extends JPanel {
             }
         } else {
             for (Piece b : Black_pieces) {
+                if(!b.isAlive){
+                    continue;
+                }
                 if (b.getCol() == p.getCol() && b.getRow() == p.getRow()) {
                     playKill();
                     b.isDead();
@@ -1414,6 +1432,9 @@ public class GamePanel extends JPanel {
         if (activePiece.color == LIGHT) {
             for (int[] move : activePiece.moves) {
                 for (Piece b : Black_pieces) {
+                    if(!b.isAlive){
+                        continue;
+                    }
                     if (b.getCol() == move[0] && b.getRow() == move[1]) {
                         main_graphics.fillRect(move[0] * Board.BLOCK_SIZE + Board.BOARD_PADDING,
                                 move[1] * Board.BLOCK_SIZE, Board.BLOCK_SIZE, Board.BLOCK_SIZE);
@@ -1424,6 +1445,9 @@ public class GamePanel extends JPanel {
         } else {
             for (int[] move : activePiece.moves) {
                 for (Piece w : White_pieces) {
+                    if(!w.isAlive){
+                        continue;
+                    }
                     if (w.getCol() == move[0] && w.getRow() == move[1]) {
                         main_graphics.fillRect(move[0] * Board.BLOCK_SIZE + Board.BOARD_PADDING,
                                 move[1] * Board.BLOCK_SIZE, Board.BLOCK_SIZE, Board.BLOCK_SIZE);
